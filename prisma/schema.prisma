@@ -1,0 +1,263 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// USERS & AUTHENTICATION
+// ==========================================
+
+model User {
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  email         String    @unique
+  name          String
+  displayName   String?
+  avatarUrl     String?
+  passwordHash  String?
+  role          String    @default("PLAYER") // PLAYER, HOST, ORG_ADMIN, SUPER_ADMIN
+  organizationId String?  @db.ObjectId
+  organization  Organization? @relation(fields: [organizationId], references: [id])
+
+  // Auth.js fields
+  emailVerified DateTime?
+  accounts      Account[]
+  sessions      Session[]
+
+  // App relations
+  createdQuizzes    Quiz[]
+  hostedSessions    GameSession[]    @relation("HostedSessions")
+  participations    SessionPlayer[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Organization {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  slug      String   @unique
+  members   User[]
+  quizzes   Quiz[]
+  createdAt DateTime @default(now())
+}
+
+// ==========================================
+// QUIZ CONTENT
+// ==========================================
+
+model Quiz {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  title         String
+  description   String?
+  coverImage    String?
+  isPublic      Boolean  @default(false)
+  isDraft       Boolean  @default(true)
+  creatorId     String   @db.ObjectId
+  creator       User     @relation(fields: [creatorId], references: [id])
+  organizationId String? @db.ObjectId
+  organization  Organization? @relation(fields: [organizationId], references: [id])
+
+  // Content
+  slides        Slide[]
+  tags          String[]
+
+  // Async mode settings
+  allowAsync    Boolean   @default(false)
+  asyncOpenAt   DateTime?
+  asyncCloseAt  DateTime?
+  maxAttempts   Int       @default(1)
+
+  // Relations
+  sessions      GameSession[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Slide {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  quizId      String   @db.ObjectId
+  quiz        Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  orderIndex  Int
+  slideType   String   // QUESTION, CONTENT, POLL, WORD_CLOUD
+
+  // Content slide fields
+  title       String?
+  bodyMarkdown String?
+  mediaUrl    String?
+
+  // Question slide fields
+  questionText    String?
+  questionType    String?  // MCQ, TRUE_FALSE, MULTI_SELECT, OPEN_ENDED, POLL
+  timeLimitSec    Int?     @default(30)
+  pointsBase      Int?     @default(1000)
+  options         QuestionOption[]
+
+  // Code snippet support
+  codeSnippet     String?
+  codeLanguage    String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model QuestionOption {
+  id          String  @id @default(auto()) @map("_id") @db.ObjectId
+  slideId     String  @db.ObjectId
+  slide       Slide   @relation(fields: [slideId], references: [id], onDelete: Cascade)
+  text        String
+  isCorrect   Boolean @default(false)
+  orderIndex  Int
+  mediaUrl    String?
+}
+
+// ==========================================
+// GAME SESSIONS (Live & Async)
+// ==========================================
+
+model GameSession {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  quizId      String   @db.ObjectId
+  quiz        Quiz     @relation(fields: [quizId], references: [id])
+  hostId      String   @db.ObjectId
+  host        User     @relation("HostedSessions", fields: [hostId], references: [id])
+
+  pin         String   @unique
+  status      String   @default("LOBBY") // LOBBY, IN_PROGRESS, PAUSED, COMPLETED, CANCELLED
+  mode        String   @default("LIVE")  // LIVE, ASYNC
+
+  // Team mode
+  teamMode    Boolean  @default(false)
+  teamCount   Int?
+
+  // Timing
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  // Relations
+  players     SessionPlayer[]
+  teams       Team[]
+  responses   PlayerResponse[]
+
+  createdAt   DateTime @default(now())
+}
+
+model Team {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId   String        @db.ObjectId
+  session     GameSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  name        String
+  colorHex    String
+  members     SessionPlayer[]
+}
+
+model SessionPlayer {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId   String      @db.ObjectId
+  session     GameSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId      String?     @db.ObjectId
+  user        User?       @relation(fields: [userId], references: [id])
+
+  // Guest players (no account)
+  nickname    String
+  avatarSeed  String?
+
+  // Team assignment
+  teamId      String?     @db.ObjectId
+  team        Team?       @relation(fields: [teamId], references: [id])
+
+  // Scoring
+  totalScore  Int         @default(0)
+  streak      Int         @default(0)
+  finalRank   Int?
+
+  // Connection state
+  isConnected Boolean     @default(true)
+  joinedAt    DateTime    @default(now())
+
+  // Relations
+  responses   PlayerResponse[]
+
+  @@unique([sessionId, nickname])
+}
+
+// ==========================================
+// RESPONSES & ANALYTICS
+// ==========================================
+
+model PlayerResponse {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  sessionId     String        @db.ObjectId
+  session       GameSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  playerId      String        @db.ObjectId
+  player        SessionPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  slideId       String        @db.ObjectId
+
+  // Answer data
+  selectedOptionIds String[]
+  openEndedText     String?
+
+  // Scoring
+  isCorrect     Boolean
+  pointsAwarded Int           @default(0)
+  responseTimeMs Int
+  streakBonus   Int           @default(0)
+
+  submittedAt   DateTime      @default(now())
+
+  @@unique([sessionId, playerId, slideId])
+}
+
+// ==========================================
+// SECURITY & PASSWORD RESET
+// ==========================================
+
+model PasswordResetOtp {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String
+  otp       String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@unique([email, otp])
+}
