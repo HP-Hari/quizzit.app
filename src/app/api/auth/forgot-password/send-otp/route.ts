@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
+
 import prisma from "@/lib/prisma";
 import { forgotPasswordSchema } from "@/lib/validators";
 
@@ -64,7 +64,8 @@ export async function POST(request: Request) {
         message: "OTP generated successfully (check server logs in development).",
       });
     }
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const { Resend } = await import("resend");
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 
     // Send email using Resend
