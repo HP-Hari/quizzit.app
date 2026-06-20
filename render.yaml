@@ -1,28 +1,4 @@
 services:
-  # Next.js Frontend Web Service
-  - type: web
-    name: quizzit-frontend
-    env: docker
-    dockerfilePath: Dockerfile
-    dockerContext: .
-    plan: free
-    envVars:
-      - key: DATABASE_URL
-        sync: false # Set manually to MongoDB Atlas connection string (replica set is required)
-      - key: REDIS_URL
-        fromService:
-          type: redis
-          name: quizzit-redis
-          property: connectionString
-      - key: NEXTAUTH_URL
-        value: https://quizzit-frontend.onrender.com # Change to your actual deployment URL
-      - key: NEXTAUTH_SECRET
-        generateValue: true
-      - key: NEXT_PUBLIC_SOCKET_URL
-        value: https://quizzit-backend.onrender.com # Change to your hosted backend URL
-      - key: GEMINI_API_KEY
-        sync: false # Set manually in Render dashboard
-
   # Standalone Socket.IO backend
   - type: web
     name: quizzit-backend
@@ -42,7 +18,7 @@ services:
       - key: SOCKET_PORT
         value: 10000 # Render routes traffic to port 10000 by default for web services
       - key: NEXTAUTH_URL
-        value: https://quizzit-frontend.onrender.com
+        value: https://quizzit.netlify.app # Update to your actual Netlify deployment URL
 
 # Managed Redis instance for syncing multi-instance rooms
 redis:

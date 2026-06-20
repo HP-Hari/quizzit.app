@@ -14,6 +14,7 @@ RUN npx prisma generate
 ARG NEXT_PUBLIC_SOCKET_URL
 ENV NEXT_PUBLIC_SOCKET_URL=$NEXT_PUBLIC_SOCKET_URL
 ENV NEXT_TELEMETRY_DISABLED 1
+ENV STANDALONE_BUILD=true
 RUN npm run build
 
 # Compile the socket server to JavaScript
