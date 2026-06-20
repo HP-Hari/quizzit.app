@@ -65,10 +65,10 @@
   --border-focus: var(--primary);
 
   /* --- Glassmorphism --- */
-  --glass-bg: rgba(30, 30, 66, 0.6);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  --glass-blur: blur(20px);
+  --glass-bg: rgba(18, 18, 38, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
+  --glass-blur: blur(25px);
 
   /* --- Typography --- */
   --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -176,9 +176,9 @@ body::before {
   width: 100%;
   height: 100%;
   background:
-    radial-gradient(ellipse at 20% 50%, rgba(108, 92, 231, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(0, 210, 255, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, rgba(255, 107, 107, 0.05) 0%, transparent 50%);
+    radial-gradient(ellipse at 20% 40%, rgba(108, 92, 231, 0.15) 0%, transparent 60%),
+    radial-gradient(ellipse at 85% 15%, rgba(0, 210, 255, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 85%, rgba(255, 107, 107, 0.1) 0%, transparent 60%);
   pointer-events: none;
   z-index: -1;
 }
@@ -379,16 +379,19 @@ ul, ol {
 
 /* ---- Cards ---- */
 .card {
-  background: var(--bg-card);
+  background: rgba(30, 30, 66, 0.4);
+  backdrop-filter: blur(10px);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
   transition: all var(--transition-base);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .card:hover {
-  border-color: var(--border-hover);
-  box-shadow: var(--shadow-lg);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  background: rgba(30, 30, 66, 0.5);
 }
 
 .card-glass {
@@ -398,6 +401,7 @@ ul, ol {
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-xl);
   box-shadow: var(--glass-shadow);
+  transition: all var(--transition-base);
 }
 
 .card-interactive {
@@ -405,9 +409,10 @@ ul, ol {
 }
 
 .card-interactive:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-xl);
-  border-color: var(--primary);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl), 0 0 30px var(--primary-glow);
+  border-color: var(--primary-light);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 /* ---- Inputs ---- */
@@ -426,8 +431,9 @@ ul, ol {
 .input {
   width: 100%;
   padding: var(--space-3) var(--space-4);
-  background: var(--bg-input);
-  border: 1px solid var(--border-default);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(5px);
   border-radius: var(--radius-lg);
   color: var(--text-primary);
   font-size: var(--text-base);
@@ -436,8 +442,9 @@ ul, ol {
 }
 
 .input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-glow);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--primary-light);
+  box-shadow: 0 0 15px var(--primary-glow);
 }
 
 .input::placeholder {
@@ -568,24 +575,27 @@ ul, ol {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: var(--z-modal);
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn 0.25s ease;
 }
 
 .modal {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-light);
+  background: rgba(15, 15, 35, 0.75);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-2xl);
   padding: var(--space-8);
   max-width: 500px;
   width: 90%;
-  box-shadow: var(--shadow-2xl);
-  animation: scaleIn 0.3s var(--transition-spring);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  animation: scaleIn 0.35s var(--transition-spring);
 }
 
 .modal-header {
