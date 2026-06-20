@@ -6,7 +6,6 @@ services:
     dockerfilePath: Dockerfile
     dockerContext: .
     plan: free
-    startCommand: node dist/server/index.js
     envVars:
       - key: DATABASE_URL
         sync: false # Set manually to MongoDB Atlas connection string
@@ -24,3 +23,4 @@ services:
   - type: redis
     name: quizzit-redis
     plan: free
+    ipAllowList: []
