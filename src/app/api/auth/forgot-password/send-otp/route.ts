@@ -3,7 +3,7 @@ import { Resend } from "resend";
 import prisma from "@/lib/prisma";
 import { forgotPasswordSchema } from "@/lib/validators";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Resend client will be initialized at runtime inside the POST handler
 
 export async function POST(request: Request) {
   try {
@@ -57,6 +57,7 @@ export async function POST(request: Request) {
 
     console.log(`[OTP Generator] For email: ${email} -> OTP is: ${otp}`);
 
+    // Initialize Resend client after verifying API key
     if (!process.env.RESEND_API_KEY) {
       console.warn("RESEND_API_KEY is not defined. OTP is:", otp);
       return NextResponse.json({
@@ -64,6 +65,7 @@ export async function POST(request: Request) {
         message: "OTP generated successfully (check server logs in development).",
       });
     }
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
     // Send email using Resend
     await resend.emails.send({
