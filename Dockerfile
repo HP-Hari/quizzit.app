@@ -19,6 +19,9 @@ RUN npm run build
 # Compile the socket server to JavaScript
 RUN npx tsc server/index.ts --outDir dist --module commonjs --target es2020 --esModuleInterop --moduleResolution node --skipLibCheck --resolveJsonModule
 
+# Prune devDependencies to keep the size optimized
+RUN npm prune --production
+
 # Stage 3: Runner stage
 FROM node:20-alpine AS runner
 WORKDIR /app
@@ -34,6 +37,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # Copy compiled socket server files
 COPY --from=builder --chown=nextjs:nodejs /app/dist ./dist
+# Copy pruned node_modules to ensure Socket.IO has all its sub-dependencies
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 # Copy prisma files for runtime DB operations
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 
