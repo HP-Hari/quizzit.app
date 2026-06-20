@@ -20,7 +20,7 @@ services:
       - key: NEXTAUTH_URL
         value: https://quizzit.netlify.app # Update to your actual Netlify deployment URL
 
-# Managed Redis instance for syncing multi-instance rooms
-redis:
-  - name: quizzit-redis
+  # Managed Redis instance for syncing multi-instance rooms
+  - type: redis
+    name: quizzit-redis
     plan: free
