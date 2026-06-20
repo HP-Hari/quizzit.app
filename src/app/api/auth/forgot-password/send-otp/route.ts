@@ -56,7 +56,6 @@ export async function POST(request: Request) {
     });
 
     console.log(`[OTP Generator] For email: ${email} -> OTP is: ${otp}`);
-
     // Initialize Resend client after verifying API key
     if (!process.env.RESEND_API_KEY) {
       console.warn("RESEND_API_KEY is not defined. OTP is:", otp);
@@ -66,6 +65,7 @@ export async function POST(request: Request) {
       });
     }
     const resend = new Resend(process.env.RESEND_API_KEY);
+
 
     // Send email using Resend
     await resend.emails.send({
